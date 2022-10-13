@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "express-prometheus-middleware": "^1.2.0"
+  }
+}

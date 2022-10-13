@@ -1,0 +1,14 @@
+version: '2'
+services:
+  web:
+    image: 152028/nodejsbackend:001
+    volumes:
+      - .:/app/
+      - /usr/app/node_modules
+    ports:
+      - "5000:5000"
+
+  webserver:
+    image: 152028/nodejsfrontend:002
+    ports:
+      - "80:80"
