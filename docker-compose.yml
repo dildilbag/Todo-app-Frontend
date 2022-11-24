@@ -1,14 +1,20 @@
 version: '2'
-services:
-  web:
-    image: 152028/nodejsbackend:001
-    volumes:
-      - .:/app/
-      - /usr/app/node_modules
-    ports:
-      - "5000:5000"
 
-  webserver:
+services:
+  # Frontend Container, diese muss den Dienst auf Port 80 bereitstellen
+  frontend:
+    # Dieses Image mit dem eigenen Frontend-Image ersetzen
     image: 152028/nodejsfrontend:002
     ports:
-      - "80:80"
+    - "8080:80"
+
+  # Backend Container, diese muss den Dienst auf Port 5000 bereitstellen,
+  # oder die PORT-Umgebungsvariable entsprechen konfigurieren
+  backend:
+    # Dieses Image mit dem eigenen Backend-Image ersetzen
+    image: 152028/nodejsfrontend:001
+    ports:
+    - "5000:5000"
+    # data.csv persistierend machen, d.h. aus dem container holen und auf dem server speichern
+    volumes:
+      - ./data/data.csv:/app/data.csv
