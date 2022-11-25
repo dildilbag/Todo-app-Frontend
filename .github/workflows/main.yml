@@ -26,4 +26,4 @@ jobs:
           context: .
           push: true
           
-          tags: 152028/ttd-frontend-todo:${{github.run_nummer}}
+          tags: 152028/ttd-frontend-todo:${{github.run_number}}
