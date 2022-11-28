@@ -4,12 +4,12 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                sh "/opt/apache-maven-3.8.6/bin/mvn package"
+                sh "java --version"
             }
         }
         stage('Test') {
             steps {
-                sh "/opt/apache-maven-3.8.6/bin/mvn test"
+                sh "java --version"
             }
         }
         stage('Release'){
