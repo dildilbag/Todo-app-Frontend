@@ -4,18 +4,25 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                echo 'Building..'
+                sh "/opt/apache-maven-3.8.6/bin/mvn package"
             }
         }
         stage('Test') {
             steps {
-                echo 'Testing..'
+                sh "/opt/apache-maven-3.8.6/bin/mvn test"
             }
         }
-        stage('Deploy') {
+        stage('Release'){
             steps {
-                echo 'Deploying....'
+                withCredentials([usernamePassword(credentialsId: 'dockerhubcredentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]){
+                  sh'''
+                  docker login -u $USERNAME -p $PASSWORD
+                  docker build -t 152028/java-demo:${BUILD_NUMBER} .
+                  docker push 152028/java-demo:${BUILD_NUMBER}
+                  '''   
+                  
+           
+                }
             }
         }
-    }
-}
+    }}
