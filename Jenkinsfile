@@ -21,7 +21,7 @@ pipeline {
                   docker push 152028/java-demo:${BUILD_NUMBER}
                   ''' 
 
-                  "archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true"  
+               
                   
            
                 }
