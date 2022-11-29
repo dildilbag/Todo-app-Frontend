@@ -14,7 +14,7 @@ pipeline {
         }
         stage('Release'){
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhubcredentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]){
+                withCredentials([usernamePassword(credentialsId: 'dockerhubcredentails', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]){
                   sh'''
                   docker login -u $USERNAME -p $PASSWORD
                   docker build -t 152028/java-demo:${BUILD_NUMBER} .
