@@ -19,7 +19,9 @@ pipeline {
                   docker login -u $USERNAME -p $PASSWORD
                   docker build -t 152028/java-demo:${BUILD_NUMBER} .
                   docker push 152028/java-demo:${BUILD_NUMBER}
-                  '''   
+                  ''' 
+
+                  "archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true"  
                   
            
                 }
