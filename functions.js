@@ -4,7 +4,7 @@
  * kann durch die production oder development API entsprechend ausgetauscht werden
  *
  ***************************************************************************************************/
-const API_URL="https://api.techstarter.dev";
+const API_URL="http://10.107.95.75:30080";
 /****************************************************************************************************
  *
  * aktualisieren eines eintrags mit ID und Zustand und liste aktualisieren
