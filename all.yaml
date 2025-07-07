@@ -1,0 +1,295 @@
+# 📁 DIRECTORY STRUCTURE OVERVIEW
+# ───────────────────────────────
+# taskcards-infra/
+# ├── argo-apps/             # ArgoCD Application definitions
+# ├── base/                  # Shared base manifests (optional)
+# └── apps/                  # App manifests per environment
+#     ├── dev/
+#     │   ├── backend/
+#     │   ├── frontend/
+#     │   └── tidb/
+#     ├── staging/
+#     │   ├── backend/
+#     │   ├── frontend/
+#     │   └── tidb/
+#     └── prod/
+#         ├── backend/
+#         ├── frontend/
+#         └── tidb/
+
+
+# ┌──────────────────────────────────────────────────┐
+# │ STEP 1: NAMESPACES FOR EACH ENVIRONMENT          │
+# └──────────────────────────────────────────────────┘
+# File: base/namespaces.yaml
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dev
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: prod
+
+
+# ┌──────────────────────────────────────────────────┐
+# │ STEP 2: TIDB CLUSTER FOR EACH ENVIRONMENT         │
+# └──────────────────────────────────────────────────┘
+# File: apps/dev/tidb/tidb-cluster.yaml (repeat for staging & prod with updated names/resources)
+---
+apiVersion: pingcap.com/v1alpha1
+kind: TidbCluster
+metadata:
+  name: tidb-dev
+  namespace: dev
+spec:
+  version: v7.1.0
+  timezone: UTC
+  pvReclaimPolicy: Retain
+  pd:
+    replicas: 1
+    storageClassName: standard
+    requests:
+      storage: 1Gi
+  tikv:
+    replicas: 2
+    storageClassName: standard
+    requests:
+      storage: 2Gi
+  tidb:
+    replicas: 1
+    service:
+      type: ClusterIP
+    requests:
+      cpu: "500m"
+      memory: "512Mi"
+
+
+# ┌──────────────────────────────────────────────────┐
+# │ STEP 3: BACKEND DEPLOYMENT                       │
+# └──────────────────────────────────────────────────┘
+# File: apps/dev/backend/deployment.yaml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: dev
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+        - name: backend
+          image: your-registry/taskcards-backend:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: DB_HOST
+              value: tidb-dev-tidb.dev.svc.cluster.local
+            - name: DB_PORT
+              value: "4000"
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: password
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+  namespace: dev
+spec:
+  selector:
+    app: backend
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+  type: ClusterIP
+
+
+# ┌──────────────────────────────────────────────────┐
+# │ STEP 4: FRONTEND DEPLOYMENT                      │
+# └──────────────────────────────────────────────────┘
+# File: apps/dev/frontend/deployment.yaml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: dev
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: your-registry/taskcards-frontend:latest
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: dev
+spec:
+  selector:
+    app: frontend
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: ClusterIP
+
+
+# ┌──────────────────────────────────────────────────┐
+# │ STEP 5: SECRETS FOR DATABASE CREDENTIALS         │
+# └──────────────────────────────────────────────────┘
+# File: apps/dev/backend/db-secret.yaml
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: db-secret
+  namespace: dev
+stringData:
+  username: root
+  password: example
+
+
+# ┌──────────────────────────────────────────────────┐
+# │ STEP 6: ARGOCD APPLICATION PER ENV               │
+# └──────────────────────────────────────────────────┘
+# File: argo-apps/dev-app.yaml (repeat for staging & prod)
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: taskcards-dev
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/your-org/taskcards-infra.git
+    targetRevision: HEAD
+    path: apps/dev
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+
+
+# ┌──────────────────────────────────────────────────┐
+# │ STEP 7: SELF-HOSTED RUNNER DEPLOYMENT (OPTIONAL) │
+# └──────────────────────────────────────────────────┘
+# File: apps/dev/runner/deployment.yaml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: github-runner
+  namespace: dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: github-runner
+  template:
+    metadata:
+      labels:
+        app: github-runner
+    spec:
+      containers:
+        - name: runner
+          image: myoung34/github-runner:latest
+          env:
+            - name: REPO_URL
+              value: https://github.com/your-org/taskcards-backend
+            - name: RUNNER_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: github-token
+                  key: token
+            - name: RUNNER_NAME
+              value: taskcards-dev-runner
+            - name: RUNNER_WORKDIR
+              value: /tmp/runner
+
+
+# ┌──────────────────────────────────────────────────┐
+# │ STEP 8: GITHUB ACTIONS CI/CD PIPELINE            │
+# └──────────────────────────────────────────────────┘
+# File: .github/workflows/backend-ci.yaml
+---
+name: Backend CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - backend/**
+
+jobs:
+  build-and-push:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: ghcr.io/your-org/taskcards-backend:latest
+
+  deploy:
+    needs: build-and-push
+    runs-on: self-hosted
+    steps:
+      - name: Sync ArgoCD
+        run: |
+          argocd app sync taskcards-dev
+
+
+# Repeat similar workflow for frontend in frontend-ci.yaml

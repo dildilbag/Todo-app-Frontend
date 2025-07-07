@@ -18,25 +18,25 @@ spec:
         ports:
         - containerPort: 80
 ---
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: todo-app-frontend
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: todo-app-frontend
-  template:
-    metadata:
-      labels:
-        app: todo-app-frontend
-    spec:
-      containers:
-      - name: todo-app-frontend
-        image: dilbag463/todo-app-frontend:latest
-        ports:
-        - containerPort: 80
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: todo-app-frontend
+# spec:
+#   replicas: 2
+#   selector:
+#     matchLabels:
+#       app: todo-app-frontend
+#   template:
+#     metadata:
+#       labels:
+#         app: todo-app-frontend
+#     spec:
+#       containers:
+#       - name: todo-app-frontend
+#         image: dilbag463/todo-app-frontend:latest
+#         ports:
+#         - containerPort: 80
 ---
 apiVersion: v1
 kind: Service
