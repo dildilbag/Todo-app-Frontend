@@ -4,7 +4,7 @@
  * kann durch die production oder development API entsprechend ausgetauscht werden
  *
  ***************************************************************************************************/
-const API_URL = "http://localhost:5000";
+const API_URL = process.env.API_URL || "http://localhost:5000";
 
 /****************************************************************************************************
  *
