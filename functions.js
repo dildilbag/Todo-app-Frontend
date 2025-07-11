@@ -4,7 +4,8 @@
  * kann durch die production oder development API entsprechend ausgetauscht werden
  *
  ***************************************************************************************************/
-const API_URL="http://10.107.95.75:30080";
+const API_URL = "http://localhost:5000";
+
 /****************************************************************************************************
  *
  * aktualisieren eines eintrags mit ID und Zustand und liste aktualisieren
