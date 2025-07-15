@@ -4,7 +4,7 @@
  * kann durch die production oder development API entsprechend ausgetauscht werden
  *
  ***************************************************************************************************/
-const API_URL = process.env.API_URL || "http://localhost:5000";
+const API_URL =  "http://localhost:5000";
 
 /****************************************************************************************************
  *
@@ -24,7 +24,7 @@ function updateTodoItem(id, done) {
       dataType: "json",
   })
   .done(function(data) {
-      updateListe(data)
+      updateListe(data.todoListe)
   });;;
 }
 
@@ -45,7 +45,7 @@ function addTodo(){
     contentType: "application/json; charset=utf-8",
     dataType: "json",
   }).done(function (data) {
-    updateListe(data);
+    updateListe(data.todoListe);
   });
 }
 
@@ -63,7 +63,7 @@ function deleteTodoItem(id) {
           dataType: "json",
       })
       .done(function(data) {
-          updateListe(data)
+          updateListe(data.todoListe)
       });;
 }
 
@@ -106,6 +106,6 @@ function loadTodos() {
           crossDomain: true,
       })
       .done(function(data) {
-          updateListe(data)
+          updateListe(data.todoListe)
       });
 }
